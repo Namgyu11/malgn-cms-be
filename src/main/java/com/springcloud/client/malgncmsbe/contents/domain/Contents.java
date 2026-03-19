@@ -53,7 +53,6 @@ public class Contents {
     public Contents(String title, String description) {
         this.title = title;
         this.description = description;
-        this.viewCount = 0L;
     }
 
     public void update(String title, String description) {

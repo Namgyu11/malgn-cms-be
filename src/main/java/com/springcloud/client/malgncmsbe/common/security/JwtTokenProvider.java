@@ -14,6 +14,8 @@ import java.util.Date;
 @Component
 public class JwtTokenProvider {
 
+    private static final String CLAIM_ROLE = "role";
+
     private final SecretKey secretKey;
     private final long expirationMs;
 
@@ -27,7 +29,7 @@ public class JwtTokenProvider {
     public String generateToken(String username, String role) {
         return Jwts.builder()
                 .subject(username)
-                .claim("role", role)
+                .claim(CLAIM_ROLE, role)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expirationMs))
                 .signWith(secretKey)
@@ -39,7 +41,7 @@ public class JwtTokenProvider {
     }
 
     public String getRole(String token) {
-        return getClaims(token).get("role", String.class);
+        return getClaims(token).get(CLAIM_ROLE, String.class);
     }
 
     public boolean validateToken(String token) {

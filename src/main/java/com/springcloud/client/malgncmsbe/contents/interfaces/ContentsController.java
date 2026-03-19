@@ -24,6 +24,8 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class ContentsController {
 
+    private static final String ROLE_PREFIX = "ROLE_";
+
     private final ContentsService contentsService;
 
     @GetMapping
@@ -76,8 +78,8 @@ public class ContentsController {
     private String extractRole(Authentication authentication) {
         return authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
-                .filter(a -> a.startsWith("ROLE_"))
-                .map(a -> a.substring(5))
+                .filter(a -> a.startsWith(ROLE_PREFIX))
+                .map(a -> a.substring(ROLE_PREFIX.length()))
                 .findFirst()
                 .orElse("USER");
     }

@@ -21,7 +21,8 @@ public class ContentsService {
     private final ContentsRepository contentsRepository;
 
     public Page<ContentsResult> getContents(Pageable pageable) {
-        return contentsRepository.findAll(pageable).map(ContentsResult::from);
+        return contentsRepository.findAll(pageable)
+                .map(ContentsResult::from);
     }
 
     @Transactional
