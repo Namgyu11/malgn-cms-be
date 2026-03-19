@@ -8,14 +8,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class JwtTokenProviderTest {
 
+    private static final String TEST_SECRET = "malgn-cms-secret-key-must-be-at-least-256-bits-long-for-hs256-algorithm";
+    private static final long ONE_DAY_MS = 86_400_000L;
+
     private JwtTokenProvider jwtTokenProvider;
 
     @BeforeEach
     void setUp() {
-        jwtTokenProvider = new JwtTokenProvider(
-                "malgn-cms-secret-key-must-be-at-least-256-bits-long-for-hs256-algorithm",
-                86400000L
-        );
+        jwtTokenProvider = new JwtTokenProvider(TEST_SECRET, ONE_DAY_MS);
     }
 
     @Test
