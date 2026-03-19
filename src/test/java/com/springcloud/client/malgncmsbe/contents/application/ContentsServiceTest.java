@@ -13,6 +13,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
 
@@ -69,8 +70,8 @@ class ContentsServiceTest {
     void update_shouldSucceed_whenOwner() {
         Contents contents = Contents.builder().title("원제목").description("원내용").build();
         given(contentsRepository.findById(1L)).willReturn(Optional.of(contents));
-        // createdBy는 Auditing으로 설정되므로 리플렉션으로 주입
-        setField(contents, "createdBy", "user1");
+        // createdBy는 Auditing으로 설정되므로 ReflectionTestUtils로 주입
+        ReflectionTestUtils.setField(contents, "createdBy", "user1");
 
         ContentsResult result = contentsService.update(
                 new UpdateContentsCommand(1L, "새제목", "새내용"), "user1", "USER");
@@ -83,7 +84,7 @@ class ContentsServiceTest {
     void update_shouldSucceed_whenAdmin() {
         Contents contents = Contents.builder().title("원제목").description("원내용").build();
         given(contentsRepository.findById(1L)).willReturn(Optional.of(contents));
-        setField(contents, "createdBy", "user1");
+        ReflectionTestUtils.setField(contents, "createdBy", "user1");
 
         ContentsResult result = contentsService.update(
                 new UpdateContentsCommand(1L, "새제목", "새내용"), "admin", "ADMIN");
@@ -96,7 +97,7 @@ class ContentsServiceTest {
     void update_shouldThrowForbidden_whenNotOwnerAndNotAdmin() {
         Contents contents = Contents.builder().title("원제목").description("원내용").build();
         given(contentsRepository.findById(1L)).willReturn(Optional.of(contents));
-        setField(contents, "createdBy", "user1");
+        ReflectionTestUtils.setField(contents, "createdBy", "user1");
 
         assertThatThrownBy(() -> contentsService.update(
                 new UpdateContentsCommand(1L, "새제목", "새내용"), "user2", "USER"))
@@ -109,7 +110,7 @@ class ContentsServiceTest {
     void delete_shouldSucceed_whenOwner() {
         Contents contents = Contents.builder().title("제목").description("내용").build();
         given(contentsRepository.findById(1L)).willReturn(Optional.of(contents));
-        setField(contents, "createdBy", "user1");
+        ReflectionTestUtils.setField(contents, "createdBy", "user1");
 
         contentsService.delete(1L, "user1", "USER");
 
@@ -121,20 +122,10 @@ class ContentsServiceTest {
     void delete_shouldThrowForbidden_whenNotOwnerAndNotAdmin() {
         Contents contents = Contents.builder().title("제목").description("내용").build();
         given(contentsRepository.findById(1L)).willReturn(Optional.of(contents));
-        setField(contents, "createdBy", "user1");
+        ReflectionTestUtils.setField(contents, "createdBy", "user1");
 
         assertThatThrownBy(() -> contentsService.delete(1L, "user2", "USER"))
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.FORBIDDEN);
-    }
-
-    private void setField(Object target, String fieldName, Object value) {
-        try {
-            var field = target.getClass().getDeclaredField(fieldName);
-            field.setAccessible(true);
-            field.set(target, value);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
     }
 }
