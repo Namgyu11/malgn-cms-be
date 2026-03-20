@@ -13,13 +13,19 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
@@ -127,5 +133,52 @@ class ContentsServiceTest {
         assertThatThrownBy(() -> contentsService.delete(1L, "user2", "USER"))
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.FORBIDDEN);
+    }
+
+    @Test
+    @DisplayName("키워드가 null이면 전체 조회한다")
+    void getContents_키워드없으면_전체조회() {
+        Pageable pageable = PageRequest.of(0, 10);
+        given(contentsRepository.findAll(pageable)).willReturn(Page.empty());
+
+        contentsService.getContents(null, pageable);
+
+        verify(contentsRepository).findAll(pageable);
+    }
+
+    @Test
+    @DisplayName("키워드가 빈 문자열이면 전체 조회한다")
+    void getContents_빈문자열이면_전체조회() {
+        Pageable pageable = PageRequest.of(0, 10);
+        given(contentsRepository.findAll(pageable)).willReturn(Page.empty());
+
+        contentsService.getContents("", pageable);
+
+        verify(contentsRepository).findAll(pageable);
+    }
+
+    @Test
+    @DisplayName("키워드가 있으면 검색 쿼리를 호출한다")
+    void getContents_키워드있으면_검색조회() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Contents contents = Contents.builder().title("검색제목").description("내용").build();
+        Page<Contents> page = new PageImpl<>(List.of(contents));
+        given(contentsRepository.searchByKeyword(eq("검색제목"), eq(pageable))).willReturn(page);
+
+        Page<ContentsResult> result = contentsService.getContents("검색제목", pageable);
+
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        verify(contentsRepository).searchByKeyword("검색제목", pageable);
+    }
+
+    @Test
+    @DisplayName("키워드 앞뒤 공백은 트림 후 검색한다")
+    void getContents_키워드_공백트림처리() {
+        Pageable pageable = PageRequest.of(0, 10);
+        given(contentsRepository.searchByKeyword(eq("제목"), eq(pageable))).willReturn(Page.empty());
+
+        contentsService.getContents("  제목  ", pageable);
+
+        verify(contentsRepository).searchByKeyword("제목", pageable);
     }
 }
