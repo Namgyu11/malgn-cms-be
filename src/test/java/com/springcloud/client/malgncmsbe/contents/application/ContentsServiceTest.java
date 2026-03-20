@@ -76,7 +76,7 @@ class ContentsServiceTest {
     void update_shouldSucceed_whenOwner() {
         Contents contents = Contents.builder().title("원제목").description("원내용").build();
         given(contentsRepository.findById(1L)).willReturn(Optional.of(contents));
-        // createdBy는 Auditing으로 설정되므로 ReflectionTestUtils로 주입
+        // NOTE: createdBy is set by JPA Auditing, so inject via ReflectionTestUtils in tests
         ReflectionTestUtils.setField(contents, "createdBy", "user1");
 
         ContentsResult result = contentsService.update(
@@ -137,7 +137,7 @@ class ContentsServiceTest {
 
     @Test
     @DisplayName("키워드가 null이면 전체 조회한다")
-    void getContents_키워드없으면_전체조회() {
+    void getContents_shouldFindAll_whenKeywordIsNull() {
         Pageable pageable = PageRequest.of(0, 10);
         given(contentsRepository.findAll(pageable)).willReturn(Page.empty());
 
@@ -148,7 +148,7 @@ class ContentsServiceTest {
 
     @Test
     @DisplayName("키워드가 빈 문자열이면 전체 조회한다")
-    void getContents_빈문자열이면_전체조회() {
+    void getContents_shouldFindAll_whenKeywordIsBlank() {
         Pageable pageable = PageRequest.of(0, 10);
         given(contentsRepository.findAll(pageable)).willReturn(Page.empty());
 
@@ -159,7 +159,7 @@ class ContentsServiceTest {
 
     @Test
     @DisplayName("키워드가 있으면 검색 쿼리를 호출한다")
-    void getContents_키워드있으면_검색조회() {
+    void getContents_shouldCallSearchByKeyword_whenKeywordIsPresent() {
         Pageable pageable = PageRequest.of(0, 10);
         Contents contents = Contents.builder().title("검색제목").description("내용").build();
         Page<Contents> page = new PageImpl<>(List.of(contents));
@@ -173,7 +173,7 @@ class ContentsServiceTest {
 
     @Test
     @DisplayName("키워드 앞뒤 공백은 트림 후 검색한다")
-    void getContents_키워드_공백트림처리() {
+    void getContents_shouldTrimKeyword_beforeSearch() {
         Pageable pageable = PageRequest.of(0, 10);
         given(contentsRepository.searchByKeyword(eq("제목"), eq(pageable))).willReturn(Page.empty());
 
