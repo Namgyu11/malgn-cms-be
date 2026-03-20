@@ -67,6 +67,15 @@ Content-Type: application/json
 }
 ```
 
+**Response 400** — 유효성 실패
+```json
+{
+  "success": false,
+  "data": null,
+  "message": "아이디를 입력해주세요."
+}
+```
+
 **Response 401** — 자격증명 불일치
 ```json
 {
@@ -178,7 +187,7 @@ GET /api/contents?keyword=검색어&page=0&size=10&sort=createdDate,desc
 GET /api/contents/{id}
 ```
 
-호출할 때마다 `view_count`가 1 증가합니다. (DB 레벨 원자적 처리)
+호출할 때마다 `view_count`가 1 증가합니다.
 
 **Response 200**
 ```json
@@ -258,6 +267,13 @@ Content-Type: application/json
 ```
 
 **Response 403** — 미인증 요청
+```json
+{
+  "success": false,
+  "data": null,
+  "message": "접근이 거부되었습니다."
+}
+```
 
 ---
 
@@ -307,6 +323,13 @@ Content-Type: application/json
 ```
 
 **Response 404** — 존재하지 않는 콘텐츠
+```json
+{
+  "success": false,
+  "data": null,
+  "message": "콘텐츠를 찾을 수 없습니다."
+}
+```
 
 ---
 
@@ -338,3 +361,10 @@ Authorization: Bearer {accessToken}
 ```
 
 **Response 404** — 존재하지 않는 콘텐츠
+```json
+{
+  "success": false,
+  "data": null,
+  "message": "콘텐츠를 찾을 수 없습니다."
+}
+```
