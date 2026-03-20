@@ -89,6 +89,7 @@ JWT(JSON Web Token) 기반 Stateless 인증을 사용합니다.
 | 기능 | 설명 |
 |------|------|
 | 회원가입 API | `POST /api/auth/signup` — USER Role로 신규 계정 생성 |
+| 키워드 검색 | `GET /api/contents?keyword=xxx` — title + description LIKE 검색 |
 | Swagger UI | `/swagger-ui.html`에서 인터랙티브 API 테스트 가능 |
 | JPA Auditing | `created_date`, `last_modified_date`, `created_by`, `last_modified_by` 자동 관리 |
 | 입력값 검증 | `@NotBlank`, `@Size` 어노테이션으로 유효성 검사 |
@@ -125,9 +126,10 @@ Response 201:
 
 ### 콘텐츠
 
-#### 목록 조회 (페이징)
+#### 목록 조회 (페이징 + 검색)
 ```
 GET /api/contents?page=0&size=10&sort=createdDate,desc
+GET /api/contents?keyword=검색어&page=0&size=10
 
 Response 200:
 {
