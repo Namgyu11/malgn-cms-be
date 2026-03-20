@@ -31,6 +31,11 @@ public class ContentsRepositoryImpl implements ContentsRepository {
     }
 
     @Override
+    public Page<Contents> searchByKeyword(String keyword, Pageable pageable) {
+        return contentsJpaRepository.searchByKeyword(keyword, pageable);
+    }
+
+    @Override
     public void delete(Contents contents) {
         contentsJpaRepository.delete(contents);
     }

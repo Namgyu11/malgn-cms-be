@@ -30,9 +30,10 @@ public class ContentsController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<PageResponse<ContentsResponse>>> getContents(
+            @RequestParam(required = false) String keyword,
             @PageableDefault(size = 10, sort = "createdDate", direction = Sort.Direction.DESC) Pageable pageable) {
         PageResponse<ContentsResponse> response = new PageResponse<>(
-                contentsService.getContents(pageable).map(ContentsResponse::from)
+                contentsService.getContents(keyword, pageable).map(ContentsResponse::from)
         );
         return ResponseEntity.ok(ApiResponse.success(response));
     }

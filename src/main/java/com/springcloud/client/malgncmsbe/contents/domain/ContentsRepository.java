@@ -9,6 +9,7 @@ public interface ContentsRepository {
     Contents save(Contents contents);
     Optional<Contents> findById(Long id);
     Page<Contents> findAll(Pageable pageable);
+    Page<Contents> searchByKeyword(String keyword, Pageable pageable);
     void delete(Contents contents);
     void incrementViewCount(Long id);
 }

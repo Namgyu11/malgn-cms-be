@@ -20,9 +20,11 @@ public class ContentsService {
 
     private final ContentsRepository contentsRepository;
 
-    public Page<ContentsResult> getContents(Pageable pageable) {
-        return contentsRepository.findAll(pageable)
-                .map(ContentsResult::from);
+    public Page<ContentsResult> getContents(String keyword, Pageable pageable) {
+        if (keyword == null || keyword.isBlank()) {
+            return contentsRepository.findAll(pageable).map(ContentsResult::from);
+        }
+        return contentsRepository.searchByKeyword(keyword.trim(), pageable).map(ContentsResult::from);
     }
 
     @Transactional
