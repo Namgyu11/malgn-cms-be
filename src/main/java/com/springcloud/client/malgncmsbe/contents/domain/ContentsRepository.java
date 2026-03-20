@@ -12,4 +12,6 @@ public interface ContentsRepository {
     Page<Contents> searchByKeyword(String keyword, Pageable pageable);
     void delete(Contents contents);
     void incrementViewCount(Long id);
+    void flush();
+    void refresh(Contents contents);
 }

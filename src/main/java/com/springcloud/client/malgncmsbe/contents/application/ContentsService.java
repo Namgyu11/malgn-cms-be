@@ -48,6 +48,8 @@ public class ContentsService {
         Contents contents = findById(command.id());
         checkPermission(contents, username, role);
         contents.update(command.title(), command.description());
+        contentsRepository.flush();
+        contentsRepository.refresh(contents);
         return ContentsResult.from(contents);
     }
 
