@@ -14,11 +14,11 @@ public class PageResponse<T> {
     private final long totalElements;
     private final int totalPages;
 
-    public PageResponse(Page<T> page) {
-        this.content = page.getContent();
-        this.page = page.getNumber();
-        this.size = page.getSize();
-        this.totalElements = page.getTotalElements();
-        this.totalPages = page.getTotalPages();
+    public PageResponse(Page<T> source) {
+        this.content = source.getContent();
+        this.page = source.getNumber();
+        this.size = source.getSize();
+        this.totalElements = source.getTotalElements();
+        this.totalPages = source.getTotalPages();
     }
 }
