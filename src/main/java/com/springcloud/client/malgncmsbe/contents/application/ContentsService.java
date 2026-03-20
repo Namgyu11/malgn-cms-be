@@ -47,9 +47,7 @@ public class ContentsService {
     public ContentsResult update(UpdateContentsCommand command, String username, String role) {
         Contents contents = findById(command.id());
         checkPermission(contents, username, role);
-        contents.update(command.title(), command.description());
-        contentsRepository.flush();
-        contentsRepository.refresh(contents);
+        contents.update(command.title(), command.description(), username);
         return ContentsResult.from(contents);
     }
 

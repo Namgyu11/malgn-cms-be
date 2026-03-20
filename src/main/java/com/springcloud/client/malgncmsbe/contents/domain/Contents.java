@@ -7,8 +7,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedBy;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
@@ -41,10 +39,9 @@ public class Contents {
     @Column(nullable = false, length = 50, updatable = false)
     private String createdBy;
 
-    @LastModifiedDate
+    @Column
     private LocalDateTime lastModifiedDate;
 
-    @LastModifiedBy
     @Column(length = 50)
     private String lastModifiedBy;
 
@@ -54,9 +51,11 @@ public class Contents {
         this.description = description;
     }
 
-    public void update(String title, String description) {
+    public void update(String title, String description, String modifiedBy) {
         this.title = title;
         this.description = description;
+        this.lastModifiedBy = modifiedBy;
+        this.lastModifiedDate = LocalDateTime.now();
     }
 
     public boolean isOwnedBy(String username) {

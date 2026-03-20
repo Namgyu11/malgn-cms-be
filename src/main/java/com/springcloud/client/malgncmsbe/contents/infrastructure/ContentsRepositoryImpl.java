@@ -2,7 +2,6 @@ package com.springcloud.client.malgncmsbe.contents.infrastructure;
 
 import com.springcloud.client.malgncmsbe.contents.domain.Contents;
 import com.springcloud.client.malgncmsbe.contents.domain.ContentsRepository;
-import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,7 +14,6 @@ import java.util.Optional;
 public class ContentsRepositoryImpl implements ContentsRepository {
 
     private final ContentsJpaRepository contentsJpaRepository;
-    private final EntityManager entityManager;
 
     @Override
     public Contents save(Contents contents) {
@@ -47,13 +45,4 @@ public class ContentsRepositoryImpl implements ContentsRepository {
         contentsJpaRepository.incrementViewCount(id);
     }
 
-    @Override
-    public void flush() {
-        contentsJpaRepository.flush();
-    }
-
-    @Override
-    public void refresh(Contents contents) {
-        entityManager.refresh(contents);
-    }
 }
