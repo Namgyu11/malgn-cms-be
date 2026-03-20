@@ -45,8 +45,7 @@ public class ContentsController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<ContentsResponse>> create(
-            @RequestBody @Valid ContentsCreateRequest request,
-            Authentication authentication) {
+            @RequestBody @Valid ContentsCreateRequest request) {
         ContentsResponse response = ContentsResponse.from(
                 contentsService.create(new CreateContentsCommand(request.title(), request.description()))
         );
@@ -79,7 +78,7 @@ public class ContentsController {
     private String extractRole(Authentication authentication) {
         return authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
-                .filter(a -> a.startsWith(ROLE_PREFIX))
+                .filter(a -> a != null && a.startsWith(ROLE_PREFIX))
                 .map(a -> a.substring(ROLE_PREFIX.length()))
                 .findFirst()
                 .orElse("USER");
