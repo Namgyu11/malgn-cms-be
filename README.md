@@ -160,10 +160,8 @@ Spring Security의 `UsernamePasswordAuthenticationFilter` 앞에 `JwtAuthenticat
 
 | 기능 | 설명 |
 |------|------|
-| Swagger UI | `/swagger-ui.html` — 인터랙티브 API 문서 및 테스트 |
-| 입력값 검증 | `@NotBlank`, `@Size` 등 Bean Validation으로 잘못된 요청 차단 (400 응답) |
-| 공통 응답 포맷 | `ApiResponse<T> { success, data, message }` 전 API 통일 |
-| 전역 예외 처리 | `@RestControllerAdvice` 기반, `ErrorCode` enum으로 에러 코드 일원화 |
+| 회원가입 API | `POST /api/auth/signup` — USER Role로 신규 계정 생성 |
+| 키워드 검색 | `GET /api/contents?keyword=xxx` — title + description 대상 LIKE 검색 |
 
 ---
 
