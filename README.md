@@ -7,6 +7,7 @@
 ## 과제 요구사항
 
 ### 개발 환경
+
 | 항목 | 내용 |
 |------|------|
 | Language | Java 25 |
@@ -17,6 +18,7 @@
 | 기타 | Lombok (필요 시) |
 
 ### 데이터 모델 (Contents)
+
 | 컬럼명 | 설명 | 타입 |
 |--------|------|------|
 | id | 고유 아이디 | bigint PK not null |
@@ -29,6 +31,7 @@
 | last_modified_by | 수정자 | varchar(50) |
 
 ### 구현 기능
+
 - **콘텐츠 CRUD**: 추가 / 목록 조회(페이징 필수) / 상세 조회 / 수정 / 삭제
 - **로그인**: Spring Security 기반, Role: ADMIN / USER
 - **접근 권한**: 작성자 본인만 수정·삭제 가능, ADMIN은 전체 수정·삭제 가능
@@ -38,16 +41,13 @@
 
 ## 프로젝트 실행 방법
 
-### 요구 사항
-- Java 25
-- Gradle (wrapper 포함)
-
-### 실행
 ```bash
 ./gradlew bootRun
 ```
 
-애플리케이션 기동 시 `data.sql`에 의해 아래 계정이 자동 생성됩니다.
+> Java 25, Gradle wrapper 필요
+
+애플리케이션 기동 시 아래 계정이 자동 생성됩니다.
 
 | username | password  | role  |
 |----------|-----------|-------|
@@ -55,14 +55,15 @@
 | user1    | user11234 | USER  |
 | user2    | user21234 | USER  |
 
-- H2 Console: http://localhost:8080/h2-console (JDBC URL: `jdbc:h2:mem:malgn-cms`)
-- Swagger UI: http://localhost:8080/swagger-ui.html
+- **H2 Console**: http://localhost:8080/h2-console (JDBC URL: `jdbc:h2:mem:malgn-cms`)
+- **Swagger UI**: http://localhost:8080/swagger-ui.html
 
 ---
 
 ## 구현 내용
 
 ### 기술 스택
+
 | 항목 | 내용 |
 |------|------|
 | Language | Java 25 |
@@ -72,19 +73,21 @@
 | API 문서 | springdoc-openapi (Swagger UI) |
 | 빌드 | Gradle |
 
+---
+
 ### 아키텍처: DDD (Domain-Driven Design)
 
-과제에서 별도로 요구한 사항은 아니지만, 레이어 간 책임과 의존성 방향을 명확히 하기 위해 DDD 기반으로 설계하였습니다.
+#### 기술적 접근 방식
 
-비즈니스 규칙은 도메인 엔티티 내부 메서드로 캡슐화하고, Application Service는 유스케이스 흐름만 담당합니다. Repository는 `domain` 레이어에 인터페이스(Port)로 정의하고 `infrastructure` 레이어에서 Spring Data JPA로 구현(Adapter)하여 의존성 역전 원칙(DIP)을 준수합니다. 이를 통해 도메인 로직이 특정 프레임워크에 종속되지 않고, 테스트 시 Repository를 손쉽게 Mock으로 교체할 수 있습니다.
+비즈니스 규칙을 도메인 엔티티 내부에 캡슐화하고, 각 레이어의 책임과 의존성 방향을 명확히 하기 위해 DDD 아키텍처를 채택했습니다. Contents와 User를 각각 독립된 Bounded Context로 분리하고, Repository는 `domain` 레이어에 인터페이스(Port)로 정의한 뒤 `infrastructure` 레이어에서 Spring Data JPA로 구현(Adapter)하여 의존성 역전 원칙(DIP)을 준수합니다. Application Service는 유스케이스 흐름만 담당하고, Command/Result 객체를 통해 레이어 간 결합을 끊었습니다.
 
 ```
 com.springcloud.client.malgncmsbe/
 ├── contents/                  ← Contents Bounded Context
-│   ├── domain/                ← Aggregate Root, Repository Port(인터페이스)
-│   ├── application/           ← Use Case (Command/Result 객체)
+│   ├── domain/                ← Aggregate Root, Repository Port (인터페이스)
+│   ├── application/           ← Use Case, Command / Result 객체
 │   ├── infrastructure/        ← Repository 구현체 (Spring Data JPA)
-│   └── interfaces/            ← Controller, Request/Response DTO
+│   └── interfaces/            ← Controller, Request / Response DTO
 ├── user/                      ← User Bounded Context
 │   ├── domain/
 │   ├── application/
@@ -97,22 +100,52 @@ com.springcloud.client.malgncmsbe/
     └── response/              ← ApiResponse, PageResponse
 ```
 
-### 인증 방식: JWT
+#### 설계 고려사항 및 트레이드오프
 
-Session 대신 JWT를 선택한 이유는 REST API의 Stateless 원칙에 부합하기 때문입니다. Session은 서버가 상태를 유지해야 해 수평 확장 시 세션 공유 문제가 발생하는 반면, JWT는 토큰 자체에 `username`과 `role`을 포함하므로 서버 상태 없이 인가 판단이 가능합니다.
+| 항목 | DDD Port & Adapter (채택) | Spring Data JPA 직접 사용 |
+|------|--------------------------|--------------------------|
+| 의존성 방향 | domain → infrastructure (DIP 준수) | domain이 JPA에 직접 의존 |
+| 테스트 용이성 | Repository를 Mock으로 교체 가능 | JPA 없이 테스트 어려움 |
+| 코드량 | 많음 (인터페이스 + 구현체 분리) | 적음 |
+| 레이어 책임 | 명확 | 혼재 가능성 있음 |
+
+코드량이 늘어나는 단점이 있지만, 각 레이어의 책임이 명확해지고 도메인 로직이 프레임워크에 종속되지 않는다는 점에서 DDD 방식을 선택했습니다.
+
+---
+
+### 인증: JWT (JSON Web Token)
+
+#### 기술적 접근 방식
+
+Spring Security의 `UsernamePasswordAuthenticationFilter` 앞에 `JwtAuthenticationFilter`를 추가하여, 매 요청마다 `Authorization: Bearer {token}` 헤더에서 JWT를 파싱하고 `SecurityContextHolder`에 인증 정보를 저장합니다. 토큰 Payload에 `username`과 `role`을 포함시켜 별도의 DB 조회 없이 인가 판단이 가능하도록 했습니다.
 
 ```
-클라이언트                           서버
+클라이언트                            서버
    |-- POST /api/auth/login -------->|
    |                                 | 자격증명 검증 → JWT 발급 (HS512, 24시간)
    |<-- { accessToken } -------------|
    |                                 |
    |-- POST /api/contents ---------->| Authorization: Bearer {token}
-   |                                 | JwtAuthenticationFilter → SecurityContext 저장
+   |                                 | JwtAuthenticationFilter
+   |                                 | → 토큰 파싱 → SecurityContext 저장 → 인가 처리
    |<-- 201 Created -----------------|
 ```
 
+#### 설계 고려사항 및 트레이드오프
+
+| 항목 | JWT (채택) | Session |
+|------|-----------|---------|
+| 서버 상태 | Stateless | Stateful (세션 저장소 필요) |
+| 수평 확장 | 별도 처리 없이 가능 | 세션 공유 문제 발생 |
+| 토큰 무효화 | 만료 전 강제 무효화 어려움 | 즉시 가능 |
+| 인가 처리 | 토큰 내 Payload로 판단 | DB/세션 조회 필요 |
+
+토큰 강제 무효화가 어렵다는 단점이 있지만, REST API의 Stateless 원칙에 부합하고 수평 확장이 용이하다는 점에서 JWT를 선택했습니다.
+
+---
+
 ### 접근 권한
+
 | 엔드포인트 | 인증 | 권한 |
 |-----------|------|------|
 | GET /api/contents | 불필요 | — |
@@ -127,12 +160,9 @@ Session 대신 JWT를 선택한 이유는 REST API의 Stateless 원칙에 부합
 
 | 기능 | 설명 |
 |------|------|
-| 회원가입 API | `POST /api/auth/signup` — USER Role로 신규 계정 생성 |
-| 키워드 검색 | `GET /api/contents?keyword=xxx` — title + description 대상 LIKE 검색 |
 | Swagger UI | `/swagger-ui.html` — 인터랙티브 API 문서 및 테스트 |
 | 입력값 검증 | `@NotBlank`, `@Size` 등 Bean Validation으로 잘못된 요청 차단 (400 응답) |
 | 공통 응답 포맷 | `ApiResponse<T> { success, data, message }` 전 API 통일 |
-| 페이징 응답 포맷 | `PageResponse<T> { content, page, size, totalElements, totalPages }` |
 | 전역 예외 처리 | `@RestControllerAdvice` 기반, `ErrorCode` enum으로 에러 코드 일원화 |
 
 ---
@@ -148,21 +178,13 @@ Thread A: SELECT view_count=5 → +1 → UPDATE 6
 Thread B: SELECT view_count=5 → +1 → UPDATE 6  ← 기대값 7, 실제 6
 ```
 
-이를 방지하기 위해 JPQL 벌크 업데이트로 DB 레벨에서 원자적으로 처리합니다.
+JPQL 벌크 업데이트를 사용해 DB 레벨에서 원자적으로 처리하여 이 문제를 해결했습니다.
 
 ```sql
 UPDATE contents SET view_count = view_count + 1 WHERE id = :id
 ```
 
-낙관적 락(`@Version`) 도입도 검토했으나, 조회수 증가는 충돌 시 재시도가 의미 없는 연산이므로 오버엔지니어링이라고 판단하여 제외했습니다.
-
-### `lastModifiedBy` 응답 정합성
-
-JPA Auditing의 `@LastModifiedBy`는 트랜잭션 flush 시점(`@PreUpdate`)에 적용됩니다. flush 전에 응답 DTO를 빌드하면 이전 값이 그대로 반환되는 문제가 있었습니다.
-
-`flush()` + `EntityManager.refresh()` 호출로 해결할 수도 있지만, 서비스 레이어에서 JPA 내부 동작을 직접 제어하는 것은 추상화를 파괴하고 Repository Port에 인프라 관심사가 노출된다는 문제가 있습니다.
-
-대신 `Contents.update(title, description, modifiedBy)` 메서드가 `lastModifiedBy`와 `lastModifiedDate`를 명시적으로 세팅하도록 변경했습니다. 서비스는 이미 인증된 `username`을 알고 있으므로 추가 비용이 없고, 수정 행위에 귀속된 상태는 수정 메서드가 직접 관리한다는 점에서 도메인 모델의 캡슐화에도 부합합니다.
+낙관적 락(`@Version`) 도입도 검토했으나, 조회수 증가는 충돌 발생 시 재시도 자체가 의미 없는 연산입니다. 재시도 로직이 필요한 낙관적 락보다 벌크 업데이트가 더 적합하다고 판단하여 채택했습니다.
 
 ---
 
@@ -172,7 +194,7 @@ JPA Auditing의 `@LastModifiedBy`는 트랜잭션 flush 시점(`@PreUpdate`)에 
 
 | 단계 | 활용 내용 |
 |------|-----------|
-| 설계 | 요구사항 분석, 아키텍처 설계, 트레이드오프 검토를 Claude와 함께 진행. 설계 결정은 개발자가 직접 판단 |
+| 설계 | 요구사항 분석, 아키텍처 설계, 트레이드오프 검토. 설계 결정은 개발자가 직접 판단 |
 | 구현 | `plan.md` 기반으로 Claude Code가 코드 생성 및 테스트 작성 |
 | 검증 | curl 기반 API 테스트 시나리오 작성 및 버그 수정 |
 
