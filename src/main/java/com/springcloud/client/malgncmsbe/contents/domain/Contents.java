@@ -27,7 +27,6 @@ public class Contents {
     @Column(nullable = false, length = 100)
     private String title;
 
-    @Lob
     @Column(columnDefinition = "TEXT")
     private String description;
 
